@@ -1,6 +1,5 @@
 require "rspec"
 require "ooze"
-require "ooze/randomize"
 
 describe "Ooze" do
   it "should build an Ooze of no organisms if no size is passed to it" do

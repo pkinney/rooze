@@ -43,4 +43,29 @@ describe "Organism" do
     
     org1.should == org2
   end
+  
+  it "shoud randomize all modifiables" do
+    org1 = Organism.new([:mod1, :mod2])
+    expect{ org1.randomize_all }.to change{ org1[:mod1] }
+    expect{ org1.randomize_all }.to change{ org1[:mod2] }
+  end
+  
+  it "shoud randomize all modifiables" do
+    org1 = Organism.new([:mod1, :mod2])
+    expect{ org1.randomize(:mod1) }.to change{ org1[:mod1] }
+    expect{ org1.randomize(:mod1) }.not_to change{ org1[:mod2] }
+  end
+  
+  it "should raise an exception when you ask for an invalid modifiable" do
+    org1 = Organism.new([:mod1, :mod2])
+    expect{ a = org1[:mod4] }.to raise_error
+    expect{ a = org1[:mod1] }.not_to raise_error
+  end
+  
+  it "should raise an exception when you try to set an invalid modifiable" do
+    org1 = Organism.new([:mod1, :mod2])
+    expect{ org1[:mod4]=1.3 }.to raise_error
+    org1.add_modifiable(:mod4, 0)
+    expect{ org1[:mod4]=1.3 }.not_to raise_error
+  end
 end

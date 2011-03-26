@@ -1,6 +1,4 @@
 require "organism"
-require "organism/sex"
-require "organism/randomize"
 
 class Ooze
   def initialize(initial_population = 0, *modifiables, &score_function)
@@ -27,5 +25,20 @@ class Ooze
   
   def get_best
     @organisms.max_by{|org| get_score(org)}
+  end
+  
+  def randomize_all(min=0, max=1)
+    @organisms.each do |org|
+      org.randomize_all(min, max)
+    end
+  end
+  
+  def randomize(mod_keys, min=0, max=1)
+    mod_keys = [mod_keys].flatten
+    @organisms.each do |org|
+      mod_keys.each do |key|
+        org.randomize(key, min, max)
+      end
+    end
   end
 end

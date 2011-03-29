@@ -56,13 +56,17 @@ class Organism
     raise "Cannot mate with organism constructed with different modifiables" unless compatible_with? other
     kid = Organism.new(self.modifiables)
     modifiables.each{|key| kid[key] = (rand(2) == 0 ? self[key] : other[key]) }
+    # puts self.modifiables.collect { |key|  "#{key} => #{self[key]}"}.join(", ")
+    # puts other.modifiables.collect { |key|  "#{key} => #{other[key]}"}.join(", ")
+    # puts kid.modifiables.collect { |key|  "#{key} => #{kid[key]}"}.join(", ")
+    # puts
     kid
   end
 		
 	def mutate_to_child(chance=modifiables.size)
 	  kid = Organism.new(self.modifiables)
     modifiables.each do |key|
-      kid[key] = self[key] + (rand(chance)==0 ? rand*2+1 : 0)
+      kid[key] = self[key] + (rand(chance)==0 ? (rand-0.5)*0.1 : 0)
     end
     kid
   end

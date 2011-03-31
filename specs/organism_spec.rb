@@ -64,8 +64,181 @@ describe "Organism" do
 
   it "should raise an exception when you try to set an invalid modifiable" do
     org1 = Organism.new([:mod1, :mod2])
-    expect{ org1[:mod4]=1.3 }.to raise_error
+    expect{ org1[:mod4]=0.5 }.to raise_error
     org1.add_modifiable(:mod4, 0)
-    expect{ org1[:mod4]=1.3 }.not_to raise_error
+    expect{ org1[:mod4]=0.5 }.not_to raise_error
+  end
+  
+  it "should accept a minimum and maximum for a given modifiable" do
+    org1 = Organism.new([:mod1, :mod2])
+    org1.set_min_max_range(:mod1, -2, 1)
+    100.times do 
+      org1.randomize_all
+      org1[:mod1].should be >= -2
+      org1[:mod1].should be <= 1
+    end
+    
+    expect{ org1[:mod1] = -3.3 }.to raise_error
+    expect{ org1[:mod1] = -0.2 }.not_to raise_error
+    
+    range = org1.range_for(:mod1)
+    range[:min].should == -2
+    range[:max].should == 1
+    range[:discrete].should == nil
+  end
+  
+  it "should accept a minimum and maximum for all modifiables" do
+    org1 = Organism.new([:mod1, :mod2, :mod3, :mod4])
+    org1.set_min_max_range_for_all(-2, 1)
+    100.times do 
+      org1.randomize_all
+      org1.modifiables.each do |key|
+        org1[key].should be >= -2
+        org1[key].should be <= 1
+      end
+    end
+    
+    org1.modifiables.each do |key|
+      expect{ org1[key] = -3.3 }.to raise_error
+      expect{ org1[key] = -0.2 }.not_to raise_error
+      range = org1.range_for(key)
+      range[:min].should == -2
+      range[:max].should == 1
+      range[:discrete].should == nil
+    end
+  end
+  
+  it "should accept a discreet set of possible values (as a range) for a given modifiable" do
+    org1 = Organism.new([:mod1, :mod2])
+    org1.set_discrete_range(:mod1, -2..3)
+    100.times do 
+      org1.randomize_all
+      org1[:mod1].should be >= -2
+      org1[:mod1].should be <= 3
+      (-2..3).should include(org1[:mod1])
+    end
+    
+    expect{ org1[:mod1] = -3.3 }.to raise_error
+    expect{ org1[:mod1] = -3 }.to raise_error
+    expect{ org1[:mod1] = -1 }.not_to raise_error
+    
+    range = org1.range_for(:mod1)
+    range[:min].should == nil
+    range[:max].should == nil
+    range[:discrete].should == (-2..3).to_a
+  end
+  
+  it "should accept a discreet set of possible values (as an array) for a given modifiable" do
+    org1 = Organism.new([:mod1, :mod2])
+    org1.set_discrete_range(:mod1, -2, -1, 0, 1, 2, 3)
+    100.times do 
+      org1.randomize_all
+      org1[:mod1].should be >= -2
+      org1[:mod1].should be <= 3
+      [-2, -1, 0, 1, 2, 3].should include(org1[:mod1])
+    end
+    
+    expect{ org1[:mod1] = -3.3 }.to raise_error
+    expect{ org1[:mod1] = -3 }.to raise_error
+    expect{ org1[:mod1] = -1 }.not_to raise_error
+    
+    range = org1.range_for(:mod1)
+    range[:min].should == nil
+    range[:max].should == nil
+    range[:discrete].should == [-2, -1, 0, 1, 2, 3]
+  end
+  
+  it "should accept a discreet set of possible values (as a Range) for all modifiable" do
+    org1 = Organism.new([:mod1, :mod2, :mod3, :mod4])
+    org1.set_discrete_range_for_all(-2..3)
+    100.times do 
+      org1.randomize_all
+      org1.modifiables.each do |key|
+        org1[key].should be >= -2
+        org1[key].should be <= 3
+        (-2..3).should include(org1[key])
+      end
+    end
+    
+    org1.modifiables.each do |key|
+      expect{ org1[key] = -3.3 }.to raise_error
+      expect{ org1[key] = -3 }.to raise_error
+      expect{ org1[key] = 1.1 }.to raise_error
+      expect{ org1[key] = -1 }.not_to raise_error
+    
+      range = org1.range_for(key)
+      range[:min].should == nil
+      range[:max].should == nil
+      range[:discrete].should == (-2..3).to_a
+    end
+  end
+  
+  it "should accept a discreet set of possible values (as an array) for all modifiable" do
+    org1 = Organism.new([:mod1, :mod2, :mod3, :mod4])
+    org1.set_discrete_range_for_all([-2, -1, 0, 1, 2, 3])
+    100.times do 
+      org1.randomize_all
+      org1.modifiables.each do |key|
+        org1[key].should be >= -2
+        org1[key].should be <= 3
+        (-2..3).should include(org1[key])
+      end
+    end
+    
+    org1.modifiables.each do |key|
+      expect{ org1[key] = -3.3 }.to raise_error
+      expect{ org1[key] = -3 }.to raise_error
+      expect{ org1[key] = 1.1 }.to raise_error
+      expect{ org1[key] = -1 }.not_to raise_error
+    
+      range = org1.range_for(key)
+      range[:min].should == nil
+      range[:max].should == nil
+      range[:discrete].should == [-2, -1, 0, 1, 2, 3]
+    end
+  end
+  
+  it "should accept a discreet set of possible values (as an array) for all modifiable" do
+    org1 = Organism.new([:mod1, :mod2, :mod3, :mod4])
+    org1.set_discrete_range_for_all(-2, -1, 0, 1, 2, 3)
+    100.times do 
+      org1.randomize_all
+      org1.modifiables.each do |key|
+        org1[key].should be >= -2
+        org1[key].should be <= 3
+        (-2..3).should include(org1[key])
+      end
+    end
+    
+    org1.modifiables.each do |key|
+      expect{ org1[key] = -3.3 }.to raise_error
+      expect{ org1[key] = -3 }.to raise_error
+      expect{ org1[key] = 1.1 }.to raise_error
+      expect{ org1[key] = -1 }.not_to raise_error
+    
+      range = org1.range_for(key)
+      range[:min].should == nil
+      range[:max].should == nil
+      range[:discrete].should == [-2, -1, 0, 1, 2, 3]
+    end
+  end
+  
+  it "should raise an error if the discrete set is of 0 length" do
+    org1 = Organism.new([:mod1, :mod2, :mod3, :mod4])
+    expect { org1.set_discrete_range(:mod1, -2, -1, 0, 1, 2, 3) }.not_to raise_exception
+    expect { org1.set_discrete_range(:mod1, -2) }.not_to raise_exception
+    expect { org1.set_discrete_range(:mod1) }.to raise_exception
+    expect { org1.set_discrete_range(:mod1, []) }.to raise_exception
+    expect { org1.set_discrete_range_for_all }.to raise_exception
+    expect { org1.set_discrete_range_for_all([]) }.to raise_exception
+  end
+  
+  it "should raise an error if the discrete set does not consist of Numerics" do
+    org1 = Organism.new([:mod1, :mod2, :mod3, :mod4])
+    expect { org1.set_discrete_range(:mod1, -2, -1, 0, 1, 2, 3) }.not_to raise_exception
+    expect { org1.set_discrete_range(:mod1, -2, -1.2) }.not_to raise_exception
+    expect { org1.set_discrete_range(:mod1, -2) }.not_to raise_exception
+    expect { org1.set_discrete_range(:mod1, -2, -1, 1..5, 1, 2, 3) }.to raise_exception
+    expect { org1.set_discrete_range(:mod1, -2, "four point three") }.to raise_exception
   end
 end

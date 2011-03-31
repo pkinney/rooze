@@ -27,18 +27,42 @@ class Ooze
     @organisms.max_by{|org| get_score(org)}
   end
   
-  def randomize_all(min=0, max=1)
+  def randomize_all()
     @organisms.each do |org|
-      org.randomize_all(min, max)
+      org.randomize_all()
     end
   end
   
-  def randomize(mod_keys, min=0, max=1)
+  def randomize(*mod_keys)
     mod_keys = [mod_keys].flatten
     @organisms.each do |org|
       mod_keys.each do |key|
-        org.randomize(key, min, max)
+        org.randomize(key)
       end
+    end
+  end
+  
+  def set_min_max_range_for_all(m1, m2)
+    @organisms.each do |org|
+      org.set_min_max_range_for_all(m1, m2)
+    end
+  end
+  
+  def set_min_max_range(mod_key, m1, m2)
+    @organisms.each do |org|
+      org.set_min_max_range(mod_key, m1, m2)
+    end
+  end
+  
+  def set_discrete_range_for_all(*m) 
+    @organisms.each do |org|
+      org.set_discrete_range_for_all(*m)
+    end
+  end
+  
+  def set_discrete_range(mod_key, *m)
+    @organisms.each do |org|
+      org.set_discrete_range(mod_key, *m)
     end
   end
 end

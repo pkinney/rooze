@@ -1,5 +1,6 @@
 require "rspec"
 require "organism"
+require "limit_spec_helpers"
 
 describe "Organism" do
   it "should be create with no modifiables" do
@@ -72,154 +73,82 @@ describe "Organism" do
   it "should accept a minimum and maximum for a given modifiable" do
     org1 = Organism.new([:mod1, :mod2])
     org1.set_min_max_range(:mod1, -2, 1)
-    100.times do 
-      org1.randomize_all
-      org1[:mod1].should be >= -2
-      org1[:mod1].should be <= 1
-    end
+    expect_organism_obeys_limits(org1, :mod1, -2, 1)
+    expect_organism_obeys_limits(org1, :mod2, 0, 1)
     
     expect{ org1[:mod1] = -3.3 }.to raise_error
     expect{ org1[:mod1] = -0.2 }.not_to raise_error
-    
-    range = org1.range_for(:mod1)
-    range[:min].should == -2
-    range[:max].should == 1
-    range[:discrete].should == nil
   end
   
   it "should accept a minimum and maximum for all modifiables" do
     org1 = Organism.new([:mod1, :mod2, :mod3, :mod4])
     org1.set_min_max_range_for_all(-2, 1)
-    100.times do 
-      org1.randomize_all
-      org1.modifiables.each do |key|
-        org1[key].should be >= -2
-        org1[key].should be <= 1
-      end
-    end
+    expect_organism_obeys_limits(org1, org1.modifiables, -2, 1)
     
     org1.modifiables.each do |key|
       expect{ org1[key] = -3.3 }.to raise_error
       expect{ org1[key] = -0.2 }.not_to raise_error
-      range = org1.range_for(key)
-      range[:min].should == -2
-      range[:max].should == 1
-      range[:discrete].should == nil
     end
   end
   
   it "should accept a discreet set of possible values (as a range) for a given modifiable" do
     org1 = Organism.new([:mod1, :mod2])
     org1.set_discrete_range(:mod1, -2..3)
-    100.times do 
-      org1.randomize_all
-      org1[:mod1].should be >= -2
-      org1[:mod1].should be <= 3
-      (-2..3).should include(org1[:mod1])
-    end
+    expect_organism_obeys_limits(org1, :mod1, (-2..3).to_a)
+    expect_organism_obeys_limits(org1, :mod2, 0, 1)
     
     expect{ org1[:mod1] = -3.3 }.to raise_error
     expect{ org1[:mod1] = -3 }.to raise_error
     expect{ org1[:mod1] = -1 }.not_to raise_error
-    
-    range = org1.range_for(:mod1)
-    range[:min].should == nil
-    range[:max].should == nil
-    range[:discrete].should == (-2..3).to_a
   end
   
   it "should accept a discreet set of possible values (as an array) for a given modifiable" do
     org1 = Organism.new([:mod1, :mod2])
     org1.set_discrete_range(:mod1, -2, -1, 0, 1, 2, 3)
-    100.times do 
-      org1.randomize_all
-      org1[:mod1].should be >= -2
-      org1[:mod1].should be <= 3
-      [-2, -1, 0, 1, 2, 3].should include(org1[:mod1])
-    end
+    expect_organism_obeys_limits(org1, :mod1, (-2..3).to_a)
+    expect_organism_obeys_limits(org1, :mod2, 0, 1)
     
     expect{ org1[:mod1] = -3.3 }.to raise_error
     expect{ org1[:mod1] = -3 }.to raise_error
     expect{ org1[:mod1] = -1 }.not_to raise_error
-    
-    range = org1.range_for(:mod1)
-    range[:min].should == nil
-    range[:max].should == nil
-    range[:discrete].should == [-2, -1, 0, 1, 2, 3]
   end
   
   it "should accept a discreet set of possible values (as a Range) for all modifiable" do
     org1 = Organism.new([:mod1, :mod2, :mod3, :mod4])
     org1.set_discrete_range_for_all(-2..3)
-    100.times do 
-      org1.randomize_all
-      org1.modifiables.each do |key|
-        org1[key].should be >= -2
-        org1[key].should be <= 3
-        (-2..3).should include(org1[key])
-      end
-    end
+    expect_organism_obeys_limits(org1, org1.modifiables, (-2..3).to_a)
     
     org1.modifiables.each do |key|
       expect{ org1[key] = -3.3 }.to raise_error
       expect{ org1[key] = -3 }.to raise_error
       expect{ org1[key] = 1.1 }.to raise_error
       expect{ org1[key] = -1 }.not_to raise_error
-    
-      range = org1.range_for(key)
-      range[:min].should == nil
-      range[:max].should == nil
-      range[:discrete].should == (-2..3).to_a
     end
   end
   
   it "should accept a discreet set of possible values (as an array) for all modifiable" do
     org1 = Organism.new([:mod1, :mod2, :mod3, :mod4])
     org1.set_discrete_range_for_all([-2, -1, 0, 1, 2, 3])
-    100.times do 
-      org1.randomize_all
-      org1.modifiables.each do |key|
-        org1[key].should be >= -2
-        org1[key].should be <= 3
-        (-2..3).should include(org1[key])
-      end
-    end
+    expect_organism_obeys_limits(org1, org1.modifiables, (-2..3).to_a)
     
     org1.modifiables.each do |key|
       expect{ org1[key] = -3.3 }.to raise_error
       expect{ org1[key] = -3 }.to raise_error
       expect{ org1[key] = 1.1 }.to raise_error
       expect{ org1[key] = -1 }.not_to raise_error
-    
-      range = org1.range_for(key)
-      range[:min].should == nil
-      range[:max].should == nil
-      range[:discrete].should == [-2, -1, 0, 1, 2, 3]
     end
   end
   
   it "should accept a discreet set of possible values (as an array) for all modifiable" do
     org1 = Organism.new([:mod1, :mod2, :mod3, :mod4])
     org1.set_discrete_range_for_all(-2, -1, 0, 1, 2, 3)
-    100.times do 
-      org1.randomize_all
-      org1.modifiables.each do |key|
-        org1[key].should be >= -2
-        org1[key].should be <= 3
-        (-2..3).should include(org1[key])
-      end
-    end
+    expect_organism_obeys_limits(org1, org1.modifiables, (-2..3).to_a)
     
     org1.modifiables.each do |key|
       expect{ org1[key] = -3.3 }.to raise_error
       expect{ org1[key] = -3 }.to raise_error
       expect{ org1[key] = 1.1 }.to raise_error
       expect{ org1[key] = -1 }.not_to raise_error
-    
-      range = org1.range_for(key)
-      range[:min].should == nil
-      range[:max].should == nil
-      range[:discrete].should == [-2, -1, 0, 1, 2, 3]
     end
   end
   

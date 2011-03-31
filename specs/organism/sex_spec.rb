@@ -17,11 +17,69 @@ describe "Organism Sex" do
     expect{ org3.mate_with(org4) }.to raise_error
     expect{ org1.mate_with(org5) }.to raise_error
   end
-  
-  it "should create an organism with the same modifiables" do
+  it "should raise an error if it mates with an organism with different ranges" do
     org1 = Organism.new(:mod1, :mod2)
     org2 = Organism.new(:mod1, :mod2)
+    
+    org2.set_min_max_range(:mod1, 0, 1)
+    expect{ org1.mate_with(org2) }.not_to raise_error
+    
+    org2.set_min_max_range_for_all(0, 1)
+    expect{ org1.mate_with(org2) }.not_to raise_error
+    
+    org2.set_min_max_range(:mod1, 2, 1)
+    expect{ org1.mate_with(org2) }.to raise_error
+    
+    org2.set_min_max_range_for_all(2, 1)
+    expect{ org1.mate_with(org2) }.to raise_error
+    
+    org2.set_min_max_range(:mod1, 0, 1)
+    expect{ org1.mate_with(org2) }.to raise_error
+    
+    org2.set_discrete_range(:mod1, 0, 1)
+    expect{ org1.mate_with(org2) }.to raise_error
+    
+    org2.set_discrete_range(:mod1, 0, 1, 3, 6)
+    expect{ org1.mate_with(org2) }.to raise_error
+    
+    org2.set_discrete_range(:mod1, 1)
+    expect{ org1.mate_with(org2) }.to raise_error
+    
+    org2.set_discrete_range_for_all(0, 1)
+    expect{ org1.mate_with(org2) }.to raise_error
+    
+    org2.set_discrete_range_for_all(0, 1, 3, 6)
+    expect{ org1.mate_with(org2) }.to raise_error
+    
+    org2.set_discrete_range_for_all(1)
+    expect{ org1.mate_with(org2) }.to raise_error
+    
+    org1.set_discrete_range_for_all(0, 1, 3, 6)
+    org2.set_discrete_range_for_all(0, 1, 3, 6)
+    expect{ org1.mate_with(org2) }.not_to raise_error
+    
+    org2.set_discrete_range(:mod1, 3, 6)
+    expect{ org1.mate_with(org2) }.to raise_error
+    
+    org2.set_discrete_range_for_all(0, 3, 1, 6)
+    expect{ org1.mate_with(org2) }.not_to raise_error
+  end
+  
+  it "should create an organism with the same modifiables and ranges" do
+    org1 = Organism.new(:mod1, :mod2)
+    org2 = Organism.new(:mod1, :mod2)
+    
     org1.mate_with(org2).compatible_with?(org2).should == true
+    org1.mate_with(org2).compatible_modifiables?(org2).should == true
+    org1.mate_with(org2).compatible_ranges?(org2).should == true
+    
+    org1.set_discrete_range_for_all(0, 3, 1, 6)
+    org2.set_discrete_range_for_all(0, 3, 1, 6)
+    org1.set_min_max_range(:mod1, 2, 1)
+    org2.set_min_max_range(:mod1, 2, 1)
+    org1.mate_with(org2).compatible_with?(org2).should == true
+    org1.mate_with(org2).compatible_modifiables?(org2).should == true
+    org1.mate_with(org2).compatible_ranges?(org2).should == true
   end
   
   it "should create an organism with the modifiable values from one parent or another" do
@@ -40,4 +98,5 @@ describe "Organism Sex" do
     org1.randomize_all
     expect{ 100.times{ org1 = org1.mutate_to_child } }.to change{ org1 }
   end
+  
 end

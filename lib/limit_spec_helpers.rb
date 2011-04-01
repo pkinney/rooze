@@ -38,7 +38,7 @@ def expect_organism_obeys_limits(org, mod_keys, min_or_discrete, max=nil)
       else
         range[:min].should == nil
         range[:max].should == nil
-        range[:discrete].should == min_or_discrete
+        range[:discrete].should =~ min_or_discrete
       end
     end
   end

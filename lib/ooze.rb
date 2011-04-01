@@ -1,30 +1,33 @@
 require "organism"
 
 class Ooze
-  def initialize(initial_population = 0, *modifiables, &score_function)
+  def initialize
     @organisms = []
-    initial_population.times do
-      @organisms << Organism.new(modifiables)
-    end
-    
-    @score_proc = score_function
+  end
+  
+  def self.from_modifiables_and_fitness_funtion(initial_population, *modifiables, &score_function)
+    ooze = Ooze.new
+    org = Organism.new(modifiables)
+    org.set_fitness_function(score_function)
+    ooze.populate_from_single_organism(org, initial_population)
+    ooze
+  end
+  
+  def populate_from_single_organism(org, count)
+    @organisms = [org]
+    (count-1).times { @organisms << Organism.new_from_example_organism(org)}
   end
   
   def population
     @organisms
   end
   
-  def set_score_function(proc=nil, &block)
-    @score_proc = proc || block
+  def set_fitness_function(proc=nil, &block)
+    @organisms.each { |org| org.set_fitness_function(proc || block) }
   end
   
-  def get_score(org)
-    raise "Score function not set" unless @score_proc
-    @score_proc.call(org)
-  end
-  
-  def get_best
-    @organisms.max_by{|org| get_score(org)}
+  def best
+    @organisms.max_by{ |org| org.fitness }
   end
   
   def randomize_all()

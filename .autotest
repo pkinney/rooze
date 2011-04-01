@@ -1,8 +1,8 @@
 require 'autotest/fsevent'
 require 'autotest/growl'
-require 'redgreen/autotest'
 require 'autotest/restart'
 require 'autotest/timestamp'
+require 'redgreen/autotest'
 
 Autotest.add_discovery do 
 	"rspec"

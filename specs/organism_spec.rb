@@ -152,6 +152,18 @@ describe "Organism" do
     end
   end
   
+  it "should automatically randomize the value of a modifiable that is now out of range" do
+    org1 = Organism.new([:mod1, :mod2, :mod3, :mod4])
+    org1[:mod1] = 0.7
+    expect { org1.set_min_max_range(:mod1, -1, 0.5) }.to change{org1[:mod1]}
+    
+    org1[:mod2] = 0.1
+    expect { org1.set_min_max_range(:mod2, -1, 0.5) }.not_to change{org1[:mod2]}
+    
+    org1[:mod3] = 0.1
+    expect { org1.set_discrete_range(:mod3, -2..2) }.to change{org1[:mod3]}
+  end
+  
   it "should raise an error if the discrete set is of 0 length" do
     org1 = Organism.new([:mod1, :mod2, :mod3, :mod4])
     expect { org1.set_discrete_range(:mod1, -2, -1, 0, 1, 2, 3) }.not_to raise_exception
@@ -169,5 +181,41 @@ describe "Organism" do
     expect { org1.set_discrete_range(:mod1, -2) }.not_to raise_exception
     expect { org1.set_discrete_range(:mod1, -2, -1, 1..5, 1, 2, 3) }.to raise_exception
     expect { org1.set_discrete_range(:mod1, -2, "four point three") }.to raise_exception
+  end
+  
+  it "should accept a fitness function as a block" do
+    org1 = Organism.new([:mod1, :mod2])
+    expect { org1.fitness }.to raise_error
+    
+    org1.set_fitness_function { |org| 2 }
+    org1.fitness.should == 2
+    
+    org1.set_fitness_function { |org| org[:mod1] + 1.5*org[:mod2] }
+    org1[:mod1] = 0.3
+    org1[:mod2] = 0.7
+    org1.fitness.should be_within(0.0001).of(1.35)
+    
+    org1.set_fitness_function { |org| 0.5*org[:mod1] + org[:mod2] }
+    org1[:mod1] = 0.4
+    org1[:mod2] = 0.6
+    org1.fitness.should be_within(0.0001).of(0.8)
+  end
+  
+  it "should accept a fitness function as a Proc" do
+    org1 = Organism.new([:mod1, :mod2])
+    expect { org1.fitness }.to raise_error
+    
+    org1.set_fitness_function Proc.new{ |org| 2 }
+    org1.fitness.should == 2
+    
+    org1.set_fitness_function { |org| org[:mod1] + 1.5*org[:mod2] }
+    org1[:mod1] = 0.3
+    org1[:mod2] = 0.7
+    org1.fitness.should be_within(0.0001).of(1.35)
+    
+    org1.set_fitness_function { |org| 0.5*org[:mod1] + org[:mod2] }
+    org1[:mod1] = 0.4
+    org1[:mod2] = 0.6
+    org1.fitness.should be_within(0.0001).of(0.8)
   end
 end

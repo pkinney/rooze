@@ -5,10 +5,30 @@ class Organism
     mod_keys.flatten.each{|k| @mods[k] = 0}
     randomize_all
   end
+  
+  def self.new_from_example_organism(org)
+    new_org = Organism.new(org.modifiables)
+    new_org.copy_ranges_from(org)
+    new_org.randomize_all
+    new_org.set_fitness_function(org.fitness_function)
+    new_org
+  end
+  
+  def set_fitness_function(proc=nil, &block)
+    @fitness_function = proc || block
+  end
+  
+  def fitness_function
+    @fitness_function
+  end
+  
+  def fitness
+    @fitness ||= @fitness_function.call(self)
+  end
 
-  def add_modifiable(mod_key, value=0)
+  def add_modifiable(mod_key, value=nil)
     unless @mods.keys.include? mod_key
-      @mods[mod_key] = value
+      @mods[mod_key] = value || random_value_for(mod_key)
     end
   end
 
@@ -22,6 +42,7 @@ class Organism
     raise "Modifiable value out of range.  Valid range is #{range_string_for(mod_key)}." unless in_range_for?(mod_key, value)
     raise "Modifiable value must be a valid number. '#{value}' is not a valid value" unless value.is_a? Numeric
     @mods[mod_key] = value
+    @fitness = nil
   end
 
   def set_modifiables(map)
@@ -42,7 +63,7 @@ class Organism
 
   def compatible_modifiables?(other)
     return false unless modifiables.size==other.modifiables.size
-    modifiables.all?{|key| other.modifiables.include? key}
+    (modifiables & other.modifiables).size==modifiables.size
   end
   
   def compatible_ranges?(other)
@@ -52,7 +73,7 @@ class Organism
       if range1[:min] && range1[:max] && range2[:min] && range2[:max]
         (range1[:min] == range2[:min]) && (range1[:max] && range2[:max])
       elsif range1[:discrete] && range2[:discrete] && range1[:discrete].size==range2[:discrete].size
-        range1[:discrete].all?{ |v| range2[:discrete].include? v}
+        (range1[:discrete] & range2[:discrete]).size==range1[:discrete].size
       else
         false
       end
@@ -140,15 +161,13 @@ class Organism
 
   def mate_with(other)
     raise "Cannot mate with organism constructed with different modifiables or ranges" unless compatible_with? other
-    kid = Organism.new(self.modifiables)
-    kid.copy_ranges_from(self)
+    kid = Organism.new_from_example_organism(self)
     modifiables.each{|key| kid[key] = (rand(2) == 0 ? self[key] : other[key]) }
     kid
   end
 
   def mutate_to_child(chance=modifiables.size)
-    kid = Organism.new(self.modifiables)
-    kid.copy_ranges_from(self)
+    kid = Organism.new_from_example_organism(self)
     modifiables.each do |key|
       kid[key] = (rand(chance)==0 ? self[key] : random_value_for(key))
     end
